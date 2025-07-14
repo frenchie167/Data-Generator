@@ -1,25 +1,22 @@
-import uuid
 import csv
 import json
-from datetime import datetime, timedelta
-from random import choice, randint, random
+from faker import Faker
 
-first_names = ['John', 'Adam', 'Edward', 'Matthew', 'Bob']
-last_names = ['Bryant', 'Bekker', 'Jones', 'Long', 'Brown']
-domains = ['gmail.com', 'mail.ru', 'yandex.ru']
+fake = Faker('ru_RU')
 
 users = []
 for _ in range(10000):
-    users.append({
-        "id": str(uuid.uuid4()),
-        "first_name": choice(first_names),
-        "last_name": choice(last_names),
-        "email": f"{choice(first_names)}.{choice(last_names)}@example.com",
-        "registration_date": (datetime.now() - timedelta(days=randint(0, 1000))).strftime("%Y-%m-%d"),
-        "is_active": random() > 0.3,
-        "address": f"ул. {choice(['Гришина', 'Кутузова', 'Поклонная'])}, д. {randint(1, 100)}",
-        "phone_number": f"+7{randint(900,999)}{randint(1000000,9999999)}"
-    })
+    user = {
+        "id": fake.uuid4(),
+        "first_name": fake.first_name(),
+        "last_name": fake.last_name(),
+        "email": fake.unique.ascii_email(),
+        "registration_date": fake.date_between(start_date='-5y').isoformat(),
+        "is_active": fake.boolean(chance_of_getting_true=75),
+        "address": fake.address().replace('\n', ', '),
+        "phone_number": fake.phone_number()
+    }
+    users.append(user)
 
 with open('users.csv', 'w', newline='', encoding='utf-8') as f:
     writer = csv.DictWriter(f, fieldnames=users[0].keys())
@@ -28,5 +25,3 @@ with open('users.csv', 'w', newline='', encoding='utf-8') as f:
 
 with open('users.json', 'w', encoding='utf-8') as f:
     json.dump(users, f, ensure_ascii=False, indent=2)
-
-print("Файлы users.csv и users.json созданы")
